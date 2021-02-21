@@ -15,6 +15,12 @@ public:
 
 private:
 	ThreadPool * TPptr;
-	uint m_count;
+	uint m_count_;
+	int port_;
+	bool openLinger_;
+	int timeoutMS_;  /* MS */
+	bool isClose_;   //status
+	int listenFd_;
+	char* srcDir_;
 
 };
