@@ -1,12 +1,16 @@
+/*
+ * @Author       : SharkZ
+ * @Date         : 2021-02-21
+ */
+
 #pragma once
-#
 #include "ThreadPool.h"
 
 class WebServer	
 {
 public:
 	WebServer();
-	int WebServerinit();
+	bool WebServerinit();
 	~WebServer();
 
 private:
