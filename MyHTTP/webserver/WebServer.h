@@ -6,6 +6,9 @@
 #pragma once
 #include "ThreadPool.h"
 
+#define CRLF "\r\n"
+
+
 class WebServer	
 {
 public:
@@ -14,13 +17,10 @@ public:
 	~WebServer();
 
 private:
+	//Server's own attribute.
+	
+	//resource
 	ThreadPool * TPptr;
-	uint m_count_;
-	int port_;
-	bool openLinger_;
-	int timeoutMS_;  /* MS */
-	bool isClose_;   //status
-	int listenFd_;
-	char* srcDir_;
+
 
 };
