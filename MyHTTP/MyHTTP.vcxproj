@@ -76,6 +76,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="http\HttpConn.cpp" />
+    <ClCompile Include="log\LOG.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="webserver\SQLPool.cpp" />
     <ClCompile Include="webserver\ThreadPool.cpp" />
@@ -83,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="http\HttpConn.h" />
+    <ClInclude Include="log\LOG.h" />
     <ClInclude Include="webserver\SQLPool.h" />
     <ClInclude Include="webserver\ThreadPool.h" />
   </ItemGroup>
