@@ -1,4 +1,8 @@
 #pragma once
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/uio.h>
+#include "../webserver/WebServer.h"
 
 #define HTTP_CONTINUE                  100
 #define HTTP_SWITCHING_PROTOCOLS       101
@@ -36,5 +40,23 @@
 
 class HttpConn
 {
+public:
+	HttpConn(int fd,sockaddr_in clientaddr);
+	~HttpConn();
+	ssize_t Read();
+	ssize_t Write();
+	int WriteBytesCount();
+	
+
+public:
+	static const char* srcDir;
+
+private:
+	int m_fd;
+	struct sockaddr_in addr;
+	bool isClose;
+	int iovCnt;
+	struct  iovec	iov[2];
+
 };
 
