@@ -75,6 +75,9 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="http\HttpResponse.cpp" />
+    <ClCompile Include="http\HttpRequest.cpp" />
+    <ClCompile Include="http\Buffer.cpp" />
     <ClCompile Include="http\HttpConn.cpp" />
     <ClCompile Include="log\LOG.cpp" />
     <ClCompile Include="main.cpp" />
@@ -83,6 +86,10 @@
     <ClCompile Include="webserver\webserver.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="http\HttpResponse.h" />
+    <ClInclude Include="http\HttpRequest.h" />
+    <ClInclude Include="http\Buffer.h" />
+    <ClInclude Include="http\HtppHelper.h" />
     <ClInclude Include="http\HttpConn.h" />
     <ClInclude Include="log\LOG.h" />
     <ClInclude Include="webserver\SQLPool.h" />

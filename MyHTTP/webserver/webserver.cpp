@@ -73,12 +73,11 @@ void WebServer::dealNewConn(int clientfd, sockaddr_in clientaddres) {
 	setFdNonblock(clientfd);	//设置为非阻塞
 };
 
-void WebServer::dealRead(HttpConn* hc) { //主线程将读任务添加到任务队列
+void WebServer::dealRead(HttpConn* hc) { //主线程将读任务添加到线程池任务队列
 	TPptr->addTask(std::bind(&WebServer::onRead,this,hc));
-	auto f = std::bind(&WebServer::onRead, this, hc);
 };
 
-void WebServer::dealWrite(HttpConn* hc) {	//主线程将写任务添加到任务队列
+void WebServer::dealWrite(HttpConn* hc) {	//主线程将写任务添加到线程池任务队列
 	TPptr->addTask(std::bind(&WebServer::onWrite,this,hc));
 };
 
