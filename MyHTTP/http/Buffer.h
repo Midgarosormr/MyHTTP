@@ -1,6 +1,7 @@
 /*
  * @Author       : SharkZ
- * @Date         : 2021-03-05
+ * @CreateDate   : 2021-03-05
+ * @Update		 : 2021-03-09
  */
 /*
 	clientfd为非阻塞,epoll监听事件类型为LT
@@ -31,6 +32,7 @@ public:
 	int m_nextbuffPos;
 
 	int m_buffSize;			//缓冲区大小
+	bool isfull;			//缓冲区无可用空间(仅Buffer类当做写缓冲区才使用),此变量用来判断是否需要使用备用buff_
 
 /*
 buff_: 
