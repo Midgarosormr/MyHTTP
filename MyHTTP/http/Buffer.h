@@ -23,6 +23,11 @@ public:
 	int readBuff(void* dest, int readSize);
 	int writeBuff(void* writebuff,int writeSize); //写入数据到Buffer::buff_
 
+	char* getBeginPos();	//返回指向第一个可读处指针
+	char* getEndPOS();	//返回指向结尾处指针
+	bool adjustReadByte(int readsize);	//显示说明已读缓冲区字节数，调整已读后的指针m_buffRWPos
+	int readable();
+
 public:
 	int m_fd;
 	int m_buffRWPos;		//用户需要读/写buff_数据时的指针
@@ -32,7 +37,6 @@ public:
 	int m_nextbuffPos;
 
 	int m_buffSize;			//缓冲区大小
-	bool isfull;			//缓冲区无可用空间(仅Buffer类当做写缓冲区才使用),此变量用来判断是否需要使用备用buff_
 
 /*
 buff_: 
@@ -45,6 +49,7 @@ buff_:
 private:
 	char buff_[2048];
 	char* nextbuff_;	//备用buff，提供弹性空间
-	
+	bool isfull;			//缓冲区无可用空间(仅Buffer类当做写缓冲区才使用),此变量用来判断是否需要使用备用buff_
+
 };
 

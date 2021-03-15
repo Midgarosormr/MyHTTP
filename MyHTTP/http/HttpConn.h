@@ -13,23 +13,24 @@ class HttpConn
 public:
 	explicit HttpConn(int fd,sockaddr_in clientaddr);
 	~HttpConn();
-	ssize_t Read();
-	ssize_t Write();
+	int readBuff();
+	int writeBuff();
 	int WriteBytesCount();
-	
+	bool onWork_request();
+	bool onWork_response();
 
 public:
+	int m_fd;
+	struct sockaddr_in addr;
+	bool isClose;
 	HttpRequest requestData;	//解析client连接请求后，返回的数据格式(e.g：含有请求方法类型，url，请求头部等信息)
 	HttpResponse responseData;	//返回请求的数据类
 
 private:
-	int m_fd;
-	struct sockaddr_in addr;
-	bool isClose;
-	int iovCnt;
 	struct  iovec	iov[2];
-	Buffer readBuff;	//读缓冲区
-	Buffer writeBuff;	//写缓冲区
+	int iovCnt;
+	Buffer readBuff_;	//读缓冲区
+	Buffer writeBuff_;	//写缓冲区
 
 };
 

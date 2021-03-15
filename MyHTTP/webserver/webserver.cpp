@@ -16,9 +16,11 @@ bool WebServer::initWebServer() {
 	if (m_listenfd > 65535 ||m_listenfd < 1024) {
 		return false;
 	}
+	connEvent_= EPOLLONESHOT | EPOLLRDHUP;
 	serverStart();
 };
 
+//1
 void WebServer::serverStart() {
 	m_listenfd = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in address;
@@ -52,43 +54,67 @@ void WebServer::serverStart() {
 				close(clientfd);
 			}
 			else if (events[i].events & EPOLLIN) {	//有数据到来
-				dealRead(&userlist[i]);
+				dealRead(userlist[i]);
 			}
 			else if (events[i].events & EPOLLOUT){	//有数据可写
-				dealWrite(&userlist[i]);
-				clientConnCount--;	//任务完成，释放连接
-				close(clientfd);
+				dealWrite(userlist[i]);
 			}
 		}
 	};
 };
 
-void WebServer::dealNewConn(int clientfd, sockaddr_in clientaddres) {
+//1
+bool WebServer::dealNewConn(int clientfd, sockaddr_in clientaddres) {
 	userlist[clientfd] =  HttpConn(clientfd, clientaddres);
 	clientConnCount++;
 	epoll_event clientOpt;
 	clientOpt.data.fd = clientfd;
-	clientOpt.events = EPOLLIN | EPOLLONESHOT | EPOLLRDHUP;
+	clientOpt.events = connEvent_|EPOLLIN;
 	epoll_ctl(m_epollfd, EPOLL_CTL_ADD, clientfd, &clientOpt);  //新客户连接注册进epoll事件表
 	setFdNonblock(clientfd);	//设置为非阻塞
+	return true;
 };
 
-void WebServer::dealRead(HttpConn* hc) { //主线程将读任务添加到线程池任务队列
+//1
+bool WebServer::dealRead(HttpConn& hc) { //主线程将读任务添加到线程池任务队列
 	TPptr->addTask(std::bind(&WebServer::onRead,this,hc));
+	return true;
 };
 
-void WebServer::dealWrite(HttpConn* hc) {	//主线程将写任务添加到线程池任务队列
+//1
+bool WebServer::dealWrite(HttpConn& hc) {	//主线程将写任务添加到线程池任务队列
 	TPptr->addTask(std::bind(&WebServer::onWrite,this,hc));
 };
 
-void WebServer::onRead(HttpConn* hc) {	//工作线程处理读任务
+//1
+bool WebServer::onRead(HttpConn& hc) {	//工作线程处理读任务
+	if (!hc.onWork_request()) {	//失败
+		//1.在epoll里删除自己的监听
+		//2.关闭自己的描述符
+		epoll_ctl(m_epollfd,EPOLL_CTL_DEL,hc.m_fd,NULL);
+		close(hc.m_fd);
+		return false;
+	}
+	//此时已解析完了用户请求，更改hc的epoll监听事件为写事件
+	epoll_event ev;
+	ev.data.fd = hc.m_fd;
+	ev.events = connEvent_ | EPOLLOUT;
+	epoll_ctl(m_epollfd,EPOLL_CTL_MOD,hc.m_fd,&ev);
+	return true;
 
 };
-void WebServer::onWrite(HttpConn* hc) {	//工作线程处理写任务
 
+bool WebServer::onWrite( HttpConn& hc) {	//工作线程处理写任务
+	if (!hc.onWork_response()) {//失败处理
+		//1.先在epoll里删除自己
+		//2.发送错误给client端
+		//3.关闭fd自己
+	}
 
-
+	clientConnCount--;
+	return true;
 };
+
 int WebServer::setFdNonblock(int fd) {
 	return fcntl(fd, F_SETFL, fcntl(fd, F_GETFD, 0) | O_NONBLOCK);
 };

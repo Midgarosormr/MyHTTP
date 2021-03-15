@@ -47,6 +47,7 @@ public:
 	
 	int m_epollfd;
 	epoll_event events[MAX_EVENT_NUMBER]; //
+	uint32_t connEvent_;//默认连接的事件监听类型
 	
 	bool m_islog;	//是否启动LOG系统
 	
@@ -72,11 +73,11 @@ public:
 	std::unique_ptr<LOG> LOGptr;
 
 private:
-	void dealNewConn(int clientfd, sockaddr_in clientaddres);
-	void dealRead(HttpConn* hc);
-	void dealWrite(HttpConn* hc);
-	void onRead(HttpConn* hc);
-	void onWrite(HttpConn* hc);
+	bool dealNewConn(int clientfd, sockaddr_in clientaddres);
+	bool dealRead(HttpConn& hc);
+	bool dealWrite(HttpConn& hc);
+	bool onRead(HttpConn& hc);
+	bool onWrite(HttpConn& hc);
 
 };
 

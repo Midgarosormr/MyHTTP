@@ -28,11 +28,11 @@ Buffer::~Buffer() {
 int Buffer::read2fd() {
 	int nleft;
 	int ntoread=0;
-	nleft = m_buffSize;
+	nleft = m_buffSize-m_buffPos;
 	while (nleft > 0)
 	{
 		if ((ntoread = read(m_fd, buff_ + m_buffPos, nleft) < 0)) {
-			if (nleft == m_buffSize)
+			if (nleft == (m_buffSize - m_buffPos))
 				return -1;	//error
 			else
 				break;
@@ -124,6 +124,7 @@ int Buffer::write2fd() {
 };
 
 //1
+//updata:2021-3-13   此函数未使用
 int Buffer::readBuff(void* readbuff,int readSize) {
 	int readableSize = m_buffPos - m_buffRWPos;
 	if (readSize >= readableSize) {
@@ -155,4 +156,27 @@ int Buffer::writeBuff(void* writebuff,int writeSize) {	//优先写默认buff
 		memcpy(nextbuff_, writebuff, writeSize);
 		return 0;	//true
 	}
+};
+
+char* Buffer::getBeginPos() {
+	return buff_+m_buffRWPos;
+};
+
+char* Buffer::getEndPOS() {
+	return buff_ + m_buffPos;
+};
+
+bool Buffer::adjustReadByte(int n) {
+	if ((m_buffRWPos + n) <=m_buffPos) {
+		m_buffRWPos+= n;
+		if (m_buffRWPos == m_buffPos) m_buffRWPos = m_buffPos = 0;
+		return true;
+	}else
+	return false;
+};
+
+int Buffer::readable() {
+	return m_buffRWPos - m_buffPos;
+	// >0,可读
+	//=0,无数据
 };

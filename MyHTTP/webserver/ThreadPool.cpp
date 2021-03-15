@@ -10,6 +10,7 @@ bool ThreadPool::init() {
 	}
 	return true;
 };
+
 void* ThreadPool::onProcess(void* argv) {
 	ThreadPool* self = (ThreadPool*)argv;
 	for (;;) {
@@ -25,9 +26,10 @@ void* ThreadPool::onProcess(void* argv) {
 		task(); //执行具体的"读/写任务"
 	}
 };
-bool ThreadPool::addTask(std::function<void()>&& task) {
+
+bool ThreadPool::addTask(std::function<bool()>&& task) {
 	pthread_mutex_lock(&mutex);
-	workqueue.emplace(std::forward<std::function<void()>>(task));	
+	workqueue.emplace(std::forward<std::function<bool()>>(task));	
 	pthread_mutex_unlock(&mutex);
 	return true;
 };
