@@ -1,10 +1,18 @@
 #include "HttpRequest.h"
 #include <algorithm>
+#include <iostream>
 
 //RFC 2616中定义的头部(Request Header Fields & Entity Header Fields)有42个
 HttpRequest::HttpRequest():header(42){
 	state_main = REQUEST_LINE;
-};
+}
+HttpRequest::HttpRequest(const HttpRequest & cp):method(cp.method)
+{
+
+}
+;
+
+
 
 HttpRequest::~HttpRequest() {};
 
@@ -21,18 +29,36 @@ CRLF
 bool HttpRequest::parse(Buffer& buff) {
 	const char CRLF[] = "\r\n";
 	while ( (buff.readable()>0) && (state_main!=FINISH)) {
-		char* lineEndPos = std::search(buff.getBeginPos, buff.getEndPOS, CRLF, CRLF + 2);
+		//debug context begin
+		std::cout << "HttpRequest::parse(Buffer& buff) -> ( while ( (buff.readable()>0) && (state_main!=FINISH)) )   begin" << std::endl;
+		//debug context end
+		char* lineEndPos = std::search(buff.getBeginPos(), buff.getEndPOS(), CRLF, CRLF + 2);
 		string line(buff.getBeginPos(), lineEndPos);	//
 		switch (state_main)
 		{
 		case HttpRequest::REQUEST_LINE:
-			if (!parseRequestLine(line))return false;
+			if (!parseRequestLine(line)) {
+				//debug context begin
+				std::cout << std::endl<<"HttpRequest::parse(Buffer& buff) -> ( (!parseRequestLine(line)) )   FALSE" << std::endl;
+				//debug context end
+				return false;
+			}
 			break;
 		case HttpRequest::HEADERS:
-			if (!parseHeader(line))return false;
+			if (!parseHeader(line)) { 
+				//debug context begin
+				std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (!parseHeader(line)) )   FALSE" << std::endl;
+				//debug context end
+				return false; 
+			}
 			break;
 		case HttpRequest::BODY:
-			if (!parseBody(line))return false;
+			if (!parseBody(line)) {
+				//debug context begin
+				std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (!parseBody(line)) )   FALSE" << std::endl;
+				//debug context end
+				return false;
+			}
 			return true;
 			break;
 		case HttpRequest::FINISH:
@@ -42,10 +68,23 @@ bool HttpRequest::parse(Buffer& buff) {
 
 			break;
 		}
-		if (lineEndPos == buff.getEndPOS())break;
-		if (!buff.adjustReadByte(line.size() + 2))return false;
+		if (lineEndPos == buff.getEndPOS()) {
+			//debug context begin
+			std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (lineEndPos == buff.getEndPOS()) )   FALSE" << std::endl;
+			//debug context end
+			return false;
+		}
+		if (!buff.adjustReadByte(line.size() + 2)) {
+			//debug context begin
+			std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( !buff.adjustReadByte(line.size() + 2) )   FALSE" << std::endl;
+			//debug context end
+			return false;
+		}
 	}
 	if(state_main==FINISH) return true;
+	//debug context begin
+	std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> NOT KNOW ERRPR   FALSE" << std::endl;
+	//debug context end
 	return false;
 };
 

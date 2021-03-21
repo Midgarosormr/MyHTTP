@@ -80,7 +80,9 @@
     <ClCompile Include="http\Buffer.cpp" />
     <ClCompile Include="http\HttpConn.cpp" />
     <ClCompile Include="log\LOG.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-lpthread %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="webserver\SQLPool.cpp" />
     <ClCompile Include="webserver\ThreadPool.cpp" />
     <ClCompile Include="webserver\webserver.cpp" />
@@ -94,8 +96,17 @@
     <ClInclude Include="log\LOG.h" />
     <ClInclude Include="webserver\SQLPool.h" />
     <ClInclude Include="webserver\ThreadPool.h" />
+    <ClInclude Include="webserver\WebServer.h" />
   </ItemGroup>
-  <ItemDefinitionGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile />
+    <ClCompile>
+      <AdditionalOptions>-pthread %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>-lpthread %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

@@ -14,23 +14,26 @@
 #include "../log/LOG.h"
 #include "../http/HttpConn.h"
 #include "SQLPool.h"
+#include <iostream>
 
 using std::string;
 
-int MAX_FD = 65536;           //最大文件描述符
+static int MAX_FD = 65536;           //最大文件描述符
 const int MAX_EVENT_NUMBER = 10000; //最大事件数
+
+
 
 class WebServer	
 {
 public:
-	WebServer(int port,		//监听端口:80/8080
-		int TPnums,		//线程池线程数
-		string user_db, string passwd_db, string name_db, int sqlpool_nums, //SQL 用户名/密码/使用的数据库名称
-		bool islog)		//是否开启LOG系统 
+	WebServer(int port=8000,		//监听端口:80/8080
+		int TPnums=4,		//线程池线程数
+		string user_db="", string passwd_db = "", string name_db="", int sqlpool_nums=4, //SQL 用户名/密码/使用的数据库名称
+		bool islog=0)		//是否开启LOG系统 
 		:m_ListenPort(port),TP_MAX_NUM(TPnums),sqlName(user_db),sqlpasswd(passwd_db),sqldabase(name_db),SQLPOOL_MAX_NUM(sqlpool_nums),m_islog(islog)
-		, TPptr(new ThreadPool(TP_MAX_NUM,MAX_EVENT_NUMBER)),SQLPptr(new SQLPool()),LOGptr(new LOG())
+		, TPptr(new ThreadPool(TP_MAX_NUM,MAX_EVENT_NUMBER)),SQLPptr(new SQLPool()),LOGptr(new LOG()),userlist(MAX_EVENT_NUMBER)
 	{
-		initWebServer();
+
 	};
 	~WebServer();
 	bool initWebServer();
@@ -55,8 +58,8 @@ public:
 	static int clientConnCount; //服务器已连接的用户数量
 	
 	//RESOURCE PATH 
-	char* root = "/var/MyHTTP";
-	char* logDir="/var/log/MyHTTP";	//LOG系统记录路径
+	string root = "/var/MyHTTP/html";
+	string logDir="/var/log/MyHTTP";	//LOG系统记录路径
 
 	//线程池相关
 	std::unique_ptr<ThreadPool> TPptr;	//线程池指针
@@ -81,4 +84,3 @@ private:
 
 };
 
-int WebServer::clientConnCount = 0;

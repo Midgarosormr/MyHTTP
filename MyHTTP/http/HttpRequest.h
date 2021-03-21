@@ -11,6 +11,7 @@ class HttpRequest
 {
 public:
 	HttpRequest();
+	HttpRequest(const HttpRequest& cp);
 	~HttpRequest();
 
 

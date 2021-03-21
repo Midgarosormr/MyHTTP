@@ -1,8 +1,11 @@
 #include "Buffer.h"
 #include <unistd.h>
+#include <sys/socket.h>
 #include <malloc.h>
 #include <memory.h>
 #include <sys/uio.h>
+#include <iostream>
+#include <error.h>
 
 /*
 		//n
@@ -13,36 +16,83 @@
 	n=1-0	->		function was complete,but isn't prefect;
 */
 
-//1
-Buffer::Buffer(int fd) :m_fd(fd), m_buffRWPos(0),m_buffPos(0), m_buffSize(2048),m_nextbuffPos(0),m_nextbuffRWPos(0){
+Buffer::Buffer() :m_fd(-1), m_buffRWPos(0), m_buffPos(0), m_buffSize(2048), m_nextbuffPos(0), m_nextbuffRWPos(0) {
+	//debug context begin
+	std::cout << std::endl <<"Buffer::Buffer() Ctor" << std::endl;
+	//debug context end
+	
 	nextbuff_ = nullptr;
 	isfull = false;
 };
 
 //1
+Buffer::Buffer(int fd) :m_fd(fd), m_buffRWPos(0),m_buffPos(0), m_buffSize(2048),m_nextbuffPos(0),m_nextbuffRWPos(0){
+	//debug context begin
+	std::cout << std::endl << "Buffer::Buffer(int fd) Ctor" << std::endl;
+	//debug context end
+	
+	nextbuff_ = nullptr;
+	isfull = false;
+};
+
+Buffer::Buffer(const Buffer& cpBuff) {
+	//debug context begin
+	std::cout << std::endl << "Buffer::Buffer(const Buffer& cpBuff) CP_Ctor" << std::endl;
+	//debug context end
+	m_fd = cpBuff.m_fd;
+	m_buffRWPos=cpBuff.m_buffRWPos;
+	m_buffPos = cpBuff.m_buffPos;
+	m_nextbuffRWPos = cpBuff.m_nextbuffRWPos;
+	m_nextbuffPos = cpBuff.m_nextbuffPos;
+	m_buffSize = cpBuff.m_buffSize;
+	strncpy(buff_, cpBuff.buff_,m_buffSize);
+	if (cpBuff.nextbuff_ != nullptr) {
+		nextbuff_ = new char[m_buffSize];
+		strncpy(nextbuff_, cpBuff.nextbuff_, m_buffSize);
+	}
+	else
+	{
+		nextbuff_ = nullptr;
+	}
+	isfull = cpBuff.isfull;
+}
+
+//1
 Buffer::~Buffer() {
 	if (nextbuff_ != nullptr) write2fd();	//正常情况下永远不会触发
-};
+}
+int Buffer::getFd()
+{
+	return m_fd;
+}
+int Buffer::setFd(int fd)
+{
+	return m_fd=fd;
+}
+;
 
 //1
 int Buffer::read2fd() {
 	int nleft;
-	int ntoread=0;
+	ssize_t ntoread=0;
 	nleft = m_buffSize-m_buffPos;
 	while (nleft > 0)
 	{
-		if ((ntoread = read(m_fd, buff_ + m_buffPos, nleft) < 0)) {
-			if (nleft == (m_buffSize - m_buffPos))
+		if ( (ntoread = read(m_fd, buff_, nleft) ) <0) {
+			if (errno == EAGAIN) break;
+			if (nleft == (m_buffSize - m_buffPos)) {
 				return -1;	//error
+			}
 			else
 				break;
 		}
-		else if (ntoread == 0) {	//EOF
+		if (ntoread == 0) {
 			break;
 		}
 		nleft -= ntoread;
 		m_buffPos += ntoread;
 	}
+
 	return m_buffPos;
 };
 
@@ -176,7 +226,7 @@ bool Buffer::adjustReadByte(int n) {
 };
 
 int Buffer::readable() {
-	return m_buffRWPos - m_buffPos;
+	return (m_buffPos-m_buffRWPos);
 	// >0,可读
 	//=0,无数据
 };

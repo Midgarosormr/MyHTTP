@@ -3,7 +3,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/uio.h>
-#include "../webserver/WebServer.h"
 #include "Buffer.h"
 #include "HttpRequest.h"	//请求数据类
 #include "HttpResponse.h"	//返回请求数据类
@@ -11,8 +10,12 @@
 class HttpConn
 {
 public:
-	explicit HttpConn(int fd,sockaddr_in clientaddr);
+	HttpConn();
+	HttpConn(int& fd,const sockaddr_in& clientaddr);
+	HttpConn(const HttpConn& hc);
+//	HttpConn& operator=(HttpConn& hcCOPY) {};
 	~HttpConn();
+
 	int readBuff();
 	int writeBuff();
 	int WriteBytesCount();
@@ -27,8 +30,6 @@ public:
 	HttpResponse responseData;	//返回请求的数据类
 
 private:
-	struct  iovec	iov[2];
-	int iovCnt;
 	Buffer readBuff_;	//读缓冲区
 	Buffer writeBuff_;	//写缓冲区
 

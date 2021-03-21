@@ -13,9 +13,11 @@ class Buffer
 {
 public:
 	Buffer();
-	explicit Buffer(int fd);
+	Buffer(int fd);
+	Buffer(const Buffer& cpBuffer);
 	~Buffer();
-
+	int getFd();
+	int setFd(int fd);
 	//operate
 	int read2fd();							//从套接字fd读入数据到Buffer::buff_
 	int write2fd();							//从Buffer::buff_写入数据到套接字fd
