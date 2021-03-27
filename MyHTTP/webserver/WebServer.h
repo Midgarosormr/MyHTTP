@@ -18,7 +18,7 @@
 
 using std::string;
 
-static int MAX_FD = 65536;           //最大文件描述符
+const int MAX_FD = 65536;           //最大文件描述符
 const int MAX_EVENT_NUMBER = 10000; //最大事件数
 
 
@@ -77,10 +77,10 @@ public:
 
 private:
 	bool dealNewConn(int clientfd, sockaddr_in clientaddres);
-	bool dealRead(HttpConn& hc);
-	bool dealWrite(HttpConn& hc);
-	bool onRead(HttpConn& hc);
-	bool onWrite(HttpConn& hc);
+	bool dealRead(HttpConn* hc);
+	bool dealWrite(HttpConn* hc);
+	bool onRead(HttpConn* hc);
+	bool onWrite(HttpConn* hc);
 
 };
 

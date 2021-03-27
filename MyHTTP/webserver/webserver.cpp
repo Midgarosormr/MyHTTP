@@ -16,7 +16,7 @@ WebServer::~WebServer(){}
 bool WebServer::initWebServer() {
 	//change the current working directory
 	if (chdir(root.c_str())<0) {
-		std::cout << "can't change directory" << std::endl;
+		//std::cout << "can't change directory" << std::endl;
 	};
 	if (m_ListenPort > 65535 || m_ListenPort < 1024) {
 		return false;
@@ -29,7 +29,7 @@ bool WebServer::initWebServer() {
 
 //1
 void WebServer::serverStart() {
-	std::cout << "m_listenfd beging" << std::endl;	//
+	//std::cout << "m_listenfd beging" << std::endl;	//
 
 	m_listenfd = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in address;
@@ -41,7 +41,7 @@ void WebServer::serverStart() {
 	ret = bind(m_listenfd, (sockaddr*)&address, addresslen);
 	ret = listen(m_listenfd, 128);
 
-	std::cout << "m_listenfd listed" << std::endl;	//
+	//std::cout << "m_listenfd listed" << std::endl;	//
 
 	setFdNonblock(m_listenfd);	//设置监听FD为非阻塞
 	m_epollfd = epoll_create(MAX_EVENT_NUMBER);
@@ -51,17 +51,8 @@ void WebServer::serverStart() {
 	EPevents.data.fd = m_listenfd;
 	epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_listenfd, &EPevents);
 	for (;;) {
-		//debug context begin
-		std::cout << "MAIN LOOP" << std::endl;
-		//debug context end
-
 		int epnum = epoll_wait(m_epollfd, events, MAX_EVENT_NUMBER, -1);
 		for (int i = 0;i < epnum;i++) {
-
-			//debug context begin
-			std::cout << "EPOLL_EVENT LOOP" << std::endl;
-			//debug context end
-
 			int clientfd = events[i].data.fd;
 			if (clientfd == m_listenfd) { //监听端口出现新连接
 				if (clientConnCount > MAX_EVENT_NUMBER) //连接数过多，等待下一次接受连接
@@ -77,16 +68,16 @@ void WebServer::serverStart() {
 			}
 			else if (events[i].events & EPOLLIN) {	//有数据到来
 				//debug context begin
-				std::cout<< "WebServer::serverStart() -> for(;;) ->(events[i].events & EPOLLIN):"<<std::endl;
+				//std::cout<< "WebServer::serverStart() -> for(;;) ->(events[i].events & EPOLLIN):\t&userlist[clientfd]:"<< &userlist[clientfd] <<std::endl;
 				//debug context end
 
-				dealRead(userlist[clientfd]);
+				dealRead(&userlist[clientfd]);
 			}
 			else if (events[i].events & EPOLLOUT){	//有数据可写
 				//debug context begin
-				std::cout << "WebServer::serverStart() -> for(;;) ->(events[i].events & EPOLLOUT):" << userlist[clientfd].m_fd << std::endl;
+				//std::cout << "WebServer::serverStart() -> for(;;) ->(events[i].events & EPOLLOUT):\t&userlist[clientfd]:" << &userlist[clientfd]<< std::endl;
 				//debug context end
-				dealWrite(userlist[clientfd]);
+				dealWrite(&userlist[clientfd]);
 			}
 		}
 	};
@@ -106,77 +97,83 @@ bool WebServer::dealNewConn(int clientfd, sockaddr_in clientaddres) {
 };
 
 //1
-bool WebServer::dealRead(HttpConn& hc) { //主线程将读任务添加到线程池任务队列
+bool WebServer::dealRead(HttpConn* hc) { //主线程将读任务添加到线程池任务队列
 	//debug context begin
-	std::cout << "WebServer::dealRead(HttpConn& hc)->hc.m_fd:" << hc.m_fd << std::endl;
+	//std::cout << "WebServer::dealRead(HttpConn& hc)->hc.m_fd:" << hc->m_fd << std::endl;
 	//debug context end
 	TPptr->addTask(std::bind(&WebServer::onRead, this, hc));
+	pthread_cond_signal(&TPptr->cond);
 	return true;
 };
 
 //1
-bool WebServer::dealWrite(HttpConn& hc) {	//主线程将写任务添加到线程池任务队列
+bool WebServer::dealWrite(HttpConn* hc) {	//主线程将写任务添加到线程池任务队列
 	TPptr->addTask(std::bind(&WebServer::onWrite,this,hc));
+	pthread_cond_signal(&TPptr->cond);
+	return true;
 };
 
 //1
-bool WebServer::onRead(HttpConn& hc) {	//工作线程处理读任务
+bool WebServer::onRead(HttpConn* hc) {	//工作线程处理读任务
 	//debug context begin
-	std::cout <<pthread_self()<<":ONRead Begin" << std::endl;
+	//std::cout <<"\t|_:ONRead Begin" << std::endl;
 	//debug context end
 
-	if (!hc.onWork_request()) {	//失败
+	if (!hc->onWork_request()) {	//失败
 		//1.在epoll里删除自己的监听
 		//2.关闭自己的描述符
 		
 		//debug context begin
-		std::cout << pthread_self() << ":hc.onWork_request() is false" << std::endl;
+		//std::cout << pthread_self() << ":hc.onWork_request() is false" << std::endl;
 		//debug context end
 
-		epoll_ctl(m_epollfd,EPOLL_CTL_DEL,hc.m_fd,NULL);
-		close(hc.m_fd);
+		epoll_ctl(m_epollfd,EPOLL_CTL_DEL,hc->m_fd,NULL);
+		close(hc->m_fd);
 		return false;
 	}
-	//此时已解析完了用户请求，更改hc的epoll监听事件为写事件
+	if (!hc->onWork_response()) {	//把回应数据存入BUFF
+		//debug context begin
+		//std::cout << "\t|_hc.onWork_request() is false" << std::endl;
+		//debug context end
+		epoll_ctl(m_epollfd, EPOLL_CTL_DEL, hc->m_fd, NULL);
+		close(hc->m_fd);
+		return false;
+	}
+	//此时已解析完了用户请求，待发送数据已存在Buff中，更改hc的epoll监听事件为写事件
 	epoll_event ev;
-	ev.data.fd = hc.m_fd;
+	ev.data.fd = hc->m_fd;
 	ev.events = connEvent_ | EPOLLOUT;
-	epoll_ctl(m_epollfd,EPOLL_CTL_MOD,hc.m_fd,&ev);
+	epoll_ctl(m_epollfd,EPOLL_CTL_MOD,hc->m_fd,&ev);
 	
 	//debug context begin
-	std::cout << pthread_self() << ":ONRead End,ReadWork is True" << std::endl;
+	//std::cout << pthread_self() << ":ONRead End,ReadWork is True" << std::endl;
 	//debug context end
 	return true;
 
 };
 
-bool WebServer::onWrite( HttpConn& hc) {	//工作线程处理写任务
+bool WebServer::onWrite(HttpConn* hc) {	//工作线程处理写任务
 	//debug context begin
-	std::cout << pthread_self() << ":ONWrite" << std::endl;
+	//std::cout <<"\t|_:ONWrite" << std::endl;
 	//debug context end
-
-	if (!hc.onWork_response()) {//失败处理
-		//1.先在epoll里删除自己
-		//2.发送错误给client端
-		//3.关闭fd自己
-
-		//debug context begin
-		std::cout << pthread_self() << ":hc.onWork_request() is false" << std::endl;
-		//debug context end
-
-		epoll_ctl(m_epollfd, EPOLL_CTL_DEL, hc.m_fd, NULL);
-		hc.responseData.onError(hc.m_fd);
-		close(hc.m_fd);
-		return false;
+	int ret = 0;
+	int err = 0;
+	if ((ret=hc->responseData.onSendfd(hc->getwriteBuff(), &err)) < 0) {
+		if (err == EAGAIN) {
+			epoll_event ev;
+			ev.data.fd = hc->m_fd;
+			ev.events = connEvent_ | EPOLLOUT;
+			epoll_ctl(m_epollfd, EPOLL_CTL_MOD, hc->m_fd, &ev);
+			return true;
+		}
 	}
-	epoll_ctl(m_epollfd, EPOLL_CTL_DEL, hc.m_fd, NULL);
-	close(hc.m_fd);
-	clientConnCount--;
-	
+	//数据传输完成
+	epoll_ctl(m_epollfd, EPOLL_CTL_DEL, hc->m_fd, NULL);
+	close(hc->m_fd);
+	clientConnCount--;	
 	//debug context begin
-	std::cout << pthread_self() << ":ONWrite End" << std::endl;
+	//std::cout << pthread_self() << ":ONWrite End" << std::endl;
 	//debug context end
-
 	return true;
 };
 

@@ -37,6 +37,9 @@ public:
 	bool parseRequestLine(string& requestline_s);
 	bool parseHeader(string& header_s);
 	bool parseBody(string& body_s);
+
+	bool adjustURI();
+
 public:
 	PARSE_STATE state_main;
 	HTTP_PARSE_CODE state_http;

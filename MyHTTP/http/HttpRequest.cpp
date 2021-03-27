@@ -27,10 +27,12 @@ CRLF
 
 //1
 bool HttpRequest::parse(Buffer& buff) {
+	//std::cout << "HttpRequest addr:[" << this << "]\t" << "HttpRequest::parse(Buffer& buff)" << "Buffer addr:[" << &buff << "]" << std::endl;
+
 	const char CRLF[] = "\r\n";
 	while ( (buff.readable()>0) && (state_main!=FINISH)) {
 		//debug context begin
-		std::cout << "HttpRequest::parse(Buffer& buff) -> ( while ( (buff.readable()>0) && (state_main!=FINISH)) )   begin" << std::endl;
+		//std::cout << "HttpRequest::parse(Buffer& buff) -> ( while ( (buff.readable()>0) && (state_main!=FINISH)) )   begin" << std::endl;
 		//debug context end
 		char* lineEndPos = std::search(buff.getBeginPos(), buff.getEndPOS(), CRLF, CRLF + 2);
 		string line(buff.getBeginPos(), lineEndPos);	//
@@ -39,7 +41,7 @@ bool HttpRequest::parse(Buffer& buff) {
 		case HttpRequest::REQUEST_LINE:
 			if (!parseRequestLine(line)) {
 				//debug context begin
-				std::cout << std::endl<<"HttpRequest::parse(Buffer& buff) -> ( (!parseRequestLine(line)) )   FALSE" << std::endl;
+				//std::cout << std::endl<<"HttpRequest::parse(Buffer& buff) -> ( (!parseRequestLine(line)) )   FALSE" << std::endl;
 				//debug context end
 				return false;
 			}
@@ -47,7 +49,7 @@ bool HttpRequest::parse(Buffer& buff) {
 		case HttpRequest::HEADERS:
 			if (!parseHeader(line)) { 
 				//debug context begin
-				std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (!parseHeader(line)) )   FALSE" << std::endl;
+				//std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (!parseHeader(line)) )   FALSE" << std::endl;
 				//debug context end
 				return false; 
 			}
@@ -55,7 +57,7 @@ bool HttpRequest::parse(Buffer& buff) {
 		case HttpRequest::BODY:
 			if (!parseBody(line)) {
 				//debug context begin
-				std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (!parseBody(line)) )   FALSE" << std::endl;
+				//std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (!parseBody(line)) )   FALSE" << std::endl;
 				//debug context end
 				return false;
 			}
@@ -70,20 +72,20 @@ bool HttpRequest::parse(Buffer& buff) {
 		}
 		if (lineEndPos == buff.getEndPOS()) {
 			//debug context begin
-			std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (lineEndPos == buff.getEndPOS()) )   FALSE" << std::endl;
+			//std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( (lineEndPos == buff.getEndPOS()) )   FALSE" << std::endl;
 			//debug context end
 			return false;
 		}
 		if (!buff.adjustReadByte(line.size() + 2)) {
 			//debug context begin
-			std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( !buff.adjustReadByte(line.size() + 2) )   FALSE" << std::endl;
+			//std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> ( !buff.adjustReadByte(line.size() + 2) )   FALSE" << std::endl;
 			//debug context end
 			return false;
 		}
 	}
 	if(state_main==FINISH) return true;
 	//debug context begin
-	std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> NOT KNOW ERRPR   FALSE" << std::endl;
+	//std::cout << std::endl << "HttpRequest::parse(Buffer& buff) -> NOT KNOW ERRPR   FALSE" << std::endl;
 	//debug context end
 	return false;
 };
@@ -104,9 +106,10 @@ bool HttpRequest::parseRequestLine(string & requestline_s)
 	if (n == std::string::npos)	return false;
 	URI = string(&requestline_s[begin], &requestline_s[n]);
 	if (URI.empty()) return false;
-	version = string(&requestline_s[n + 1], &requestline_s.back());
+	version = string(&requestline_s[n + 1], &*requestline_s.end());
 	if (version.empty()) return false;
 	//全部正常,更新状态
+	if (!adjustURI()) return false;
 	state_main = HEADERS;
 	return true;
 };
@@ -146,3 +149,27 @@ bool HttpRequest::parseBody(string & body_s)
 	state_main = FINISH;
 	return true;
 };
+
+bool HttpRequest::adjustURI() {
+	//debug begin
+	//std::cout << "|_adjust before:\t" << URI << std::endl;
+	//debug end
+	if (URI == "/index.html" || URI == "/" || URI=="") {
+		URI = "./index.html";
+	}
+	else if(URI.find("http://")!= std::string::npos){
+		std::string::size_type n = 0;
+		for (int i = 0;i < 3;i++) {
+			 n = URI.find("/",n);
+			 if (n == std::string::npos)	return false;
+		}
+		URI = string(".")+string(&URI[n],&*URI.end());
+	}
+	else {
+		URI = string(".")+URI;
+		//debug begin
+		//std::cout << "|_adjust after:\t" << URI << std::endl;
+		//debug end
+	}
+	return true;
+}

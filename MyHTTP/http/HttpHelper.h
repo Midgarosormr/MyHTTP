@@ -59,7 +59,7 @@ const std::unordered_map<string, string> FILE_TYPE = {
 	{ ".js",    "text/javascript "},
 };
 
-const std::unordered_map<int, string>CODE_RESPONSE_STATUS = {
+static std::unordered_map< int , string>CODE_RESPONSE_STATUS = {
 	{ 200, "OK" },
 	{ 400, "Bad Request" },
 	{ 403, "Forbidden" },

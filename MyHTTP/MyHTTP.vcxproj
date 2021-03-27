@@ -91,7 +91,7 @@
     <ClInclude Include="http\HttpResponse.h" />
     <ClInclude Include="http\HttpRequest.h" />
     <ClInclude Include="http\Buffer.h" />
-    <ClInclude Include="http\HtppHelper.h" />
+    <ClInclude Include="http\HttpHelper.h" />
     <ClInclude Include="http\HttpConn.h" />
     <ClInclude Include="log\LOG.h" />
     <ClInclude Include="webserver\SQLPool.h" />
@@ -100,9 +100,12 @@
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile />
-    <ClCompile>
-      <AdditionalOptions>-pthread %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
+    <ClCompile />
+    <Link>
+      <AdditionalOptions>-lpthread %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalOptions>-lpthread %(AdditionalOptions)</AdditionalOptions>
     </Link>

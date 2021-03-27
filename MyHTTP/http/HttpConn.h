@@ -13,11 +13,11 @@ public:
 	HttpConn();
 	HttpConn(int& fd,const sockaddr_in& clientaddr);
 	HttpConn(const HttpConn& hc);
-//	HttpConn& operator=(HttpConn& hcCOPY) {};
+	HttpConn& operator=(const HttpConn& hcCOPY);
 	~HttpConn();
 
 	int readBuff();
-	int writeBuff();
+	Buffer* getwriteBuff();
 	int WriteBytesCount();
 	bool onWork_request();
 	bool onWork_response();
@@ -28,6 +28,7 @@ public:
 	bool isClose;
 	HttpRequest requestData;	//解析client连接请求后，返回的数据格式(e.g：含有请求方法类型，url，请求头部等信息)
 	HttpResponse responseData;	//返回请求的数据类
+
 
 private:
 	Buffer readBuff_;	//读缓冲区

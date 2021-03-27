@@ -1,13 +1,16 @@
 #include "ThreadPool.h"
+#include <iostream>
 
 	
 ThreadPool::~ThreadPool() {
 	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&cond);
 	free(m_Threads);
 };
 
 bool ThreadPool::init() {
 	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
 	m_Threads = new pthread_t[m_Threadnums];
 	for (int i = 0;i < m_Threadnums;i++) {
 		int ret=pthread_create(&m_Threads[i], nullptr, onProcess,(void*)this);
@@ -21,15 +24,17 @@ void* ThreadPool::onProcess(void* argv) {
 	ThreadPool* self = (ThreadPool*)argv;
 	for (;;) {
 		pthread_mutex_lock(&self->mutex);
-		if (self->workqueue.empty()) {	//任务队列为空，解锁
-			pthread_mutex_unlock(&self->mutex);
-			continue;
+		while (self->workqueue.empty()) {	//任务队列为空
+			pthread_cond_wait(&self->cond, &self->mutex);
 		}
-		//任务队列非空，处理任务
-		auto task=std::move(self->workqueue.front());
+		auto task = std::move(self->workqueue.front());
 		self->workqueue.pop();
 		pthread_mutex_unlock(&self->mutex);
+		//debug context begin
+		//std::cout << pthread_self() << std::endl;
+		//debug context end
 		task(); //执行具体的"读/写任务"
+
 	}
 };
 
