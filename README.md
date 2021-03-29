@@ -18,3 +18,6 @@ sh ./MyHTTP/build.sh
 ```
 ./MyHTTP/bin/Myserver &
 ```
+
+## 压力测试
+QPS: 4502
