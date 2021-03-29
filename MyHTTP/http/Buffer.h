@@ -34,11 +34,11 @@ public:
 public:
 	iovec vec[2];
 	int m_fd;
-	volatile int m_buffRWPos;		//用户需要读/写buff_数据时的指针
-	volatile int m_buffPos;			//从内核缓冲区写数据到buff_时的指针
+	int m_buffRWPos;		//用户需要读/写buff_数据时的指针
+	int m_buffPos;			//从内核缓冲区写数据到buff_时的指针
 	
-	volatile int m_nextbuffRWPos;
-	volatile int m_nextbuffPos;
+	int m_nextbuffRWPos;
+	int m_nextbuffPos;
 	bool isfull;			//缓冲区无可用空间(仅Buffer类当做写缓冲区才使用),此变量用来判断是否需要使用备用buff_
 	int m_buffSize;			//缓冲区大小
 
