@@ -3,8 +3,8 @@
 
 int main()
 {
-	WebServer server;
-	server.initWebServer();
+	WebServer* server=new WebServer();
+	server->initWebServer();
 
     return 0;
 }

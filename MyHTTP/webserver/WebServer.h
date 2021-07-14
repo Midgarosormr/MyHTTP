@@ -26,7 +26,7 @@ const int MAX_EVENT_NUMBER = 10000; //最大事件数
 class WebServer	
 {
 public:
-	WebServer(int port=8000,		//监听端口:80/8080
+	WebServer(int port=8000,		//监听端口:800 0
 		int TPnums=4,		//线程池线程数
 		string user_db="", string passwd_db = "", string name_db="", int sqlpool_nums=4, //SQL 用户名/密码/使用的数据库名称
 		bool islog=0)		//是否开启LOG系统 
