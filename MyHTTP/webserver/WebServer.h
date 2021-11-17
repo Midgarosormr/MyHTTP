@@ -31,7 +31,7 @@ public:
 		string user_db="", string passwd_db = "", string name_db="", int sqlpool_nums=4, //SQL 用户名/密码/使用的数据库名称
 		bool islog=0)		//是否开启LOG系统 
 		:m_ListenPort(port),TP_MAX_NUM(TPnums),sqlName(user_db),sqlpasswd(passwd_db),sqldabase(name_db),SQLPOOL_MAX_NUM(sqlpool_nums),m_islog(islog)
-		, TPptr(new ThreadPool(TP_MAX_NUM,MAX_EVENT_NUMBER)),SQLPptr(new SQLPool()),LOGptr(new LOG()),userlist(MAX_EVENT_NUMBER)
+		,SQLPptr(new SQLPool()),LOGptr(new LOG()),userlist(MAX_EVENT_NUMBER)
 	{
 
 	};

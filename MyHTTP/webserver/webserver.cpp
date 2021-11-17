@@ -21,6 +21,8 @@ bool WebServer::initWebServer() {
 	if (m_ListenPort > 65535 || m_ListenPort < 1024) {
 		return false;
 	}
+	TPptr.reset(new ThreadPool());
+	TPptr->init();
 	connEvent_= EPOLLONESHOT | EPOLLRDHUP;
 
 	serverStart();
