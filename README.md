@@ -1,6 +1,6 @@
 # MyHTTP
 Linux下C++轻量级Web服务器
-- 使用**线程池+NIO+EPOLL ET+事件处理模式(Reactor)**
+- 使用**线程池+NIO+EPOLL ET+半同步/半反应堆模式**
 
 ## 测试环境
 1核1G
