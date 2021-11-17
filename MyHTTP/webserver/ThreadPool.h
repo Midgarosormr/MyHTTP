@@ -8,7 +8,7 @@
 class ThreadPool
 {
 public:
-	ThreadPool(int threadNum = 8, int max_WaitRequests = 10000) :m_Threadnums(threadNum), m_MaxWaitRequests(max_WaitRequests) { init(); };
+	ThreadPool(int threadNum = 8, int max_WaitRequests = 10000) :m_Threadnums(threadNum), m_MaxWaitRequests(max_WaitRequests) { };
 	~ThreadPool();
 	bool init();
 public:
